@@ -1,5 +1,8 @@
 Voici une liste que j'ai rendu la plus exhaustive que possible de toutes les conversation que j'ai eues avec chatgpt pour faire mon TM. Certaines n'ont pas pu être inclus car la fonctionnalité de partage des conversation n'est pas encore disponible pour les conversations contenant des images (il y a donc 2-3 conversations que je n'a pour cette raison pas pu inclure)
 
+/!\IMPORTANT/!\
+(Si vous trouvez des informations confidentielles dans une de ces conversation dont le libre-accès pourrait nuire à moi ou à un quelqu'un d'autre, veuillez m'en informer par e-mail (marco.costa@eduvaud.ch)) 
+Les dialogues dans ces conversations sont parfois fictifs, d'autres fois ce sont des conversation audio dont la retranscription pourrait être erronnée
 
 https://chat.openai.com/share/6be1e3cf-9c17-4819-aa5e-e9fb95295a7c
 https://chat.openai.com/share/48fa8659-9828-4953-b8a5-9edc9b349cd1

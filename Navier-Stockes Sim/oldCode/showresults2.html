@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<body>
+    <canvas id="myCanvas" width="600px" height="300px" style="border:2px solid #000000;">
+        Your browser does not support the HTML canvas tag.
+    </canvas>
+    <title>Fluid Sim</title>
+    <style>
+        /* Apply flex layout to align elements horizontally */
+        body {
+          display: flex;
+          background-color: #222;
+          color: #fff;
+        }
+    </style>
+    <input type="file" accept=".txt" id="inputfile">
+    <button onclick="restart()">Restart</button>
+    <button onclick="pauseOrPlay()">Pause/Play</button>
+    <label for="frameSpeed">Frame speed:</label>
+    <input type="range" id="frameSpeed" name="frameSpeed" min="1" max="100" value="5">
+    <h1 id="frame"></h1>
+    <label for="minValue">Min Value:</label>
+    <input type="range" id="minValue" name="minValue" min="-10" max="10" value="0">
+    <label for="maxValue">Max Value:</label>
+    <input type="range" id="maxValue" name="maxValue" min="-10" max="10" value="5">
+    <p id="minValueDisplay"></p>
+<p id="maxValueDisplay"></p>
+    
+    <script>
+    // Variables
+    var imgWidth=50;
+    var imgHeight=50;
+    const scale=10;
+    var actualFrame=0;
+    var frames;
+    var frameInterval;
+    var isPaused = false;
+
+    // Elements
+    var canvas=document.getElementById("myCanvas");
+    var canvasContext= canvas.getContext("2d");
+    var frameSpeed = document.getElementById("frameSpeed");
+
+    var minValueInput = document.getElementById("minValue");
+var maxValueInput = document.getElementById("maxValue");
+var minValue = minValueInput.value;
+var maxValue = maxValueInput.value;
+
+minValueInput.addEventListener('change', function() {
+    minValue = minValueInput.value;
+    showNextFrame();
+});
+
+maxValueInput.addEventListener('change', function() {
+    maxValue = maxValueInput.value;
+    showNextFrame();
+});
+
+var minValueDisplay = document.getElementById("minValueDisplay");
+var maxValueDisplay = document.getElementById("maxValueDisplay");
+
+minValueInput.addEventListener('change', function() {
+    minValue = minValueInput.value;
+    minValueDisplay.textContent = "Min Value: " + minValue;
+    showNextFrame();
+});
+
+maxValueInput.addEventListener('change', function() {
+    maxValue = maxValueInput.value;
+    maxValueDisplay.textContent = "Max Value: " + maxValue;
+    showNextFrame();
+});
+
+
+    // Adjust canvas size
+    canvas.width=imgWidth*scale;
+    canvas.height=imgHeight*scale;
+
+    // Handle file input change
+    document.getElementById('inputfile').addEventListener('change', function() {
+        clearInterval(frameInterval);
+        actualFrame=0;
+        var fr=new FileReader();
+        fr.onload=function(){
+            results=fr.result.split("W");
+            imgWidth=parseInt(results[0],10);
+            imgHeight=imgWidth;
+            canvas.width=imgWidth*scale;
+            canvas.height=imgHeight*scale;
+
+            frames=results[1].split("#");
+            showNextFrame();
+        }
+        fr.readAsText(this.files[0]);
+    });
+
+    // Frame speed control
+    frameSpeed.addEventListener('change', function() {
+        if (!isPaused) {
+            clearInterval(frameInterval);
+            showNextFrame();
+        }
+    });
+
+    // Play or pause the animation
+    function pauseOrPlay() {
+        isPaused = !isPaused;
+        if (!isPaused) {
+            showNextFrame();
+        } else {
+            clearInterval(frameInterval);
+        }
+    }
+
+    // Restart the animation
+    function restart() {
+        actualFrame=0;
+        clearInterval(frameInterval);
+        if (!isPaused && frames) {
+            showNextFrame();
+        }
+    }
+
+    // Show the next frame
+    function showNextFrame() {
+        if(frames && actualFrame < frames.length) {
+            showImage(frames[actualFrame].split("\\").map(Number));
+            document.getElementById("frame").innerHTML=actualFrame;
+            actualFrame++;
+            frameInterval = setTimeout(showNextFrame, 101 - frameSpeed.value);
+        } else {
+            clearInterval(frameInterval);
+        }
+    }
+    function showImage(data) {
+    var ImgData=canvasContext.createImageData(canvas.width, canvas.height);
+    for(var i=0;i<data.length;i++) {
+        var startpoint=Math.floor(i/imgWidth)*imgWidth*scale*scale+(i%imgWidth)*scale;
+        for(var line=0;line<scale;line++) {
+            for(var column=0;column<scale;column++) {
+                var color = getColor(data[i]);
+                putDataColorAt(ImgData, column*imgWidth*scale+line+startpoint, color);
+            }
+        }
+    }
+    canvasContext.putImageData(ImgData,0,0);
+}
+
+    // Add color to image data
+    function putDataColorAt(ImgData, index, color) {
+        ImgData.data[index*4+0]=color[0];
+        ImgData.data[index*4+1]=color[1];
+        ImgData.data[index*4+2]=color[2];
+        ImgData.data[index*4+3]=color[3];
+    }
+
+    function getColor(value) {
+    // Define color map
+    var normalizedValue = (value - minValue) / (maxValue - minValue);
+    var colorMap = [
+        { normalizedValue: 0, color: [0, 0, 255, 255] },      // Blue for low values
+        { normalizedValue: 0.5, color: [0, 255, 0, 255] },    // Green for medium values
+        { normalizedValue: 1, color: [255, 0, 0, 255] }       // Red for high values
+    ];
+
+    // Find two closest values in color map
+    var below = colorMap[0];
+    var above = colorMap[colorMap.length - 1];
+    for (var i = 0; i < colorMap.length; i++) {
+        if (colorMap[i].value <= value && colorMap[i].value > below.value) {
+            below = colorMap[i];
+        }
+        if (colorMap[i].value >= value && colorMap[i].value < above.value) {
+            above = colorMap[i];
+        }
+    }
+
+    // Interpolate color
+    var ratio = (value - below.value) / (above.value - below.value);
+    var color = [
+        below.color[0] * (1 - ratio) + above.color[0] * ratio,
+        below.color[1] * (1 - ratio) + above.color[1] * ratio,
+        below.color[2] * (1 - ratio) + above.color[2] * ratio,
+        below.color[3] * (1 - ratio) + above.color[3] * ratio
+    ];
+
+    return color;
+}
+    </script>
+</body>
+</html>

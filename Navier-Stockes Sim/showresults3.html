@@ -226,10 +226,6 @@ function showImage(data) {
         for(var line=0;line<scale;line++) {
             for(var column=0;column<scale;column++) {
                 putDataColorAt(ImgData, column*imgWidth*scale+line+startpoint, getColor(normalizedData));
-                if(column==scale-1)
-                {
-                  putDataColorAt(ImgData, column*imgWidth*scale+line+startpoint, getColor(1));
-                }
             }
         }
     }

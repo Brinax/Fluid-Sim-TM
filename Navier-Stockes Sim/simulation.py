@@ -413,16 +413,16 @@ def applySimulationSettings():
     boundsVelocities=createAWall(boundsVelocities,Vector2(0,-1),Vector2(99*width/100,-1),Vector2(5,0),lambda vector: boundVectToIndex(vector))
     boundsVelocities=createAWall(boundsVelocities,Vector2(0*width/100,height),Vector2(99*width/100,height),Vector2(-5,0),lambda vector: boundVectToIndex(vector))
 
-densityF = resetFileAndOpen(isReset or isDensityOnly,"C:/Users/lcach/Documents/4-Ecole/Physique/TM/Navier-Stockes Sim/Data/densitydata.txt")
-velocityXF = resetFileAndOpen(isReset,"C:/Users/lcach/Documents/4-Ecole/Physique/TM/Navier-Stockes Sim/Data/velocityXdata.txt")
-velocityYF = resetFileAndOpen(isReset,"C:/Users/lcach/Documents/4-Ecole/Physique/TM/Navier-Stockes Sim/Data/velocityYdata.txt")
+densityF = resetFileAndOpen(isReset or isDensityOnly,"Navier-Stockes Sim/Data/densitydata.txt")
+velocityXF = resetFileAndOpen(isReset,"Navier-Stockes Sim/Data/velocityXdata.txt")
+velocityYF = resetFileAndOpen(isReset,"Navier-Stockes Sim/Data/velocityYdata.txt")
 numberOfSteps=None
 if isReset:
     applySimulationSettings()
 elif(not isDensityOnly):
-    densities=readData("C:/Users/lcach/Documents/4-Ecole/Physique/TM/Navier-Stockes Sim/Data/densitydata.txt")
-    velocityX=readData("C:/Users/lcach/Documents/4-Ecole/Physique/TM/Navier-Stockes Sim/Data/velocityXdata.txt")
-    velocityY=readData("C:/Users/lcach/Documents/4-Ecole/Physique/TM/Navier-Stockes Sim/Data/velocityYdata.txt")
+    densities=readData("Navier-Stockes Sim/Data/densitydata.txt")
+    velocityX=readData("Navier-Stockes Sim/Data/velocityXdata.txt")
+    velocityY=readData("Navier-Stockes Sim/Data/velocityYdata.txt")
     velocities=[]
     for (index,data) in enumerate(velocityX):
         velocities.append(Vector2(velocityX[index],velocityY[index]))
@@ -431,12 +431,12 @@ if(isDensityOnly and isReset):
     exit("incoherent parameters!")
 if(isDensityOnly):
     applySimulationSettings()
-    velXDataSetIndexes=getDataSetIndexesInDataFile("C:/Users/lcach/Documents/4-Ecole/Physique/TM/Navier-Stockes Sim/Data/velocityXdata.txt")
-    velYDataSetIndexes=getDataSetIndexesInDataFile("C:/Users/lcach/Documents/4-Ecole/Physique/TM/Navier-Stockes Sim/Data/velocityYdata.txt")
+    velXDataSetIndexes=getDataSetIndexesInDataFile("Navier-Stockes Sim/Data/velocityXdata.txt")
+    velYDataSetIndexes=getDataSetIndexesInDataFile("Navier-Stockes Sim/Data/velocityYdata.txt")
     frameIndex=0
     while frameIndex<len(velXDataSetIndexes)-1:
-        velocityX=readDataInInterval("C:/Users/lcach/Documents/4-Ecole/Physique/TM/Navier-Stockes Sim/Data/velocityXdata.txt",velXDataSetIndexes[frameIndex]-1,velXDataSetIndexes[frameIndex+1])
-        velocityY=readDataInInterval("C:/Users/lcach/Documents/4-Ecole/Physique/TM/Navier-Stockes Sim/Data/velocityYdata.txt",velYDataSetIndexes[frameIndex]-1,velYDataSetIndexes[frameIndex+1])
+        velocityX=readDataInInterval("Navier-Stockes Sim/Data/velocityXdata.txt",velXDataSetIndexes[frameIndex]-1,velXDataSetIndexes[frameIndex+1])
+        velocityY=readDataInInterval("Navier-Stockes Sim/Data/velocityYdata.txt",velYDataSetIndexes[frameIndex]-1,velYDataSetIndexes[frameIndex+1])
         velocities=[]
         for (index,data) in enumerate(velocityX):
             velocities.append(Vector2(velocityX[index],velocityY[index]))
@@ -481,7 +481,6 @@ else:
             print(round(index/numberOfSteps*100,1),"%")
             print(time.time()-start)
             start=time.time()
-#subprocess.call([r'C:/Users/lcach/Documents/4-Ecole/Physique/TM/Navier-Stockes Sim/shutdown.bat'])
     
 
 

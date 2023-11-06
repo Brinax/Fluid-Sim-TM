@@ -1,8 +1,8 @@
-particleDataPath="C:/Users/lcach/Documents/4-Ecole/Physique/TM/Particle to Fluid Data Gate/data.txt"
-xVelOutputPath="C:/Users/lcach/Documents/4-Ecole/Physique/TM/Particle to Fluid Data Gate/xVelParticle.txt"
-yVelOutputPath="C:/Users/lcach/Documents/4-Ecole/Physique/TM/Particle to Fluid Data Gate/yVelParticle.txt"
-densityOutputPath="C:/Users/lcach/Documents/4-Ecole/Physique/TM/Particle to Fluid Data Gate/densities.txt"
-energyOutputPath="C:/Users/lcach/Documents/4-Ecole/Physique/TM/Particle to Fluid Data Gate/energies.txt"
+particleDataPath="Particle to Fluid Data Gate/data.txt"
+xVelOutputPath="Particle to Fluid Data Gate/xVelParticle.txt"
+yVelOutputPath="Particle to Fluid Data Gate/yVelParticle.txt"
+densityOutputPath="Particle to Fluid Data Gate/densities.txt"
+energyOutputPath="Particle to Fluid Data Gate/energies.txt"
 xInputSize=100
 yInputSize=30
 

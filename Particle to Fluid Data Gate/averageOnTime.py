@@ -52,23 +52,23 @@ def dataToString(dataArray):
         txt+=str(rounded)+"\\"
     return txt
 
-densityAVF = resetFileAndOpen(True,"C:/Users/lcach/Documents/4-Ecole/Physique/TM/Particle to Fluid Data Gate/densitiesAV.txt")
-velocityXAVF = resetFileAndOpen(True,"C:/Users/lcach/Documents/4-Ecole/Physique/TM/Particle to Fluid Data Gate/xVelParticleAV.txt")
-velocityYAVF = resetFileAndOpen(True,"C:/Users/lcach/Documents/4-Ecole/Physique/TM/Particle to Fluid Data Gate/yVelParticleAV.txt")
+densityAVF = resetFileAndOpen(True,"Particle to Fluid Data Gate/densitiesAV.txt")
+velocityXAVF = resetFileAndOpen(True,"Particle to Fluid Data Gate/xVelParticleAV.txt")
+velocityYAVF = resetFileAndOpen(True,"Particle to Fluid Data Gate/yVelParticleAV.txt")
 
 
-densitiesDataSetIndexes=getDataSetIndexesInDataFile("C:/Users/lcach/Documents/4-Ecole/Physique/TM/Particle to Fluid Data Gate/densities.txt")
-velXDataSetIndexes=getDataSetIndexesInDataFile("C:/Users/lcach/Documents/4-Ecole/Physique/TM/Particle to Fluid Data Gate/xVelParticle.txt")
-velYDataSetIndexes=getDataSetIndexesInDataFile("C:/Users/lcach/Documents/4-Ecole/Physique/TM/Particle to Fluid Data Gate/yVelParticle.txt")
+densitiesDataSetIndexes=getDataSetIndexesInDataFile("Particle to Fluid Data Gate/densities.txt")
+velXDataSetIndexes=getDataSetIndexesInDataFile("Particle to Fluid Data Gate/xVelParticle.txt")
+velYDataSetIndexes=getDataSetIndexesInDataFile("Particle to Fluid Data Gate/yVelParticle.txt")
 frameIndex=0
 while frameIndex<len(velXDataSetIndexes)-5:
     densities=[]
     velocityX=[]
     velocityY=[]
     for index in range(5):
-        densities.append(readDataInInterval("C:/Users/lcach/Documents/4-Ecole/Physique/TM/Particle to Fluid Data Gate/densities.txt",densitiesDataSetIndexes[frameIndex+index]-1,densitiesDataSetIndexes[frameIndex+index+1]))
-        velocityX.append(readDataInInterval("C:/Users/lcach/Documents/4-Ecole/Physique/TM/Particle to Fluid Data Gate/xVelParticle.txt",velXDataSetIndexes[frameIndex+index]-1,velXDataSetIndexes[frameIndex+index+1]))
-        velocityY.append(readDataInInterval("C:/Users/lcach/Documents/4-Ecole/Physique/TM/Particle to Fluid Data Gate/yVelParticle.txt",velYDataSetIndexes[frameIndex+index]-1,velYDataSetIndexes[frameIndex+index+1]))
+        densities.append(readDataInInterval("Particle to Fluid Data Gate/densities.txt",densitiesDataSetIndexes[frameIndex+index]-1,densitiesDataSetIndexes[frameIndex+index+1]))
+        velocityX.append(readDataInInterval("Particle to Fluid Data Gate/xVelParticle.txt",velXDataSetIndexes[frameIndex+index]-1,velXDataSetIndexes[frameIndex+index+1]))
+        velocityY.append(readDataInInterval("Particle to Fluid Data Gate/yVelParticle.txt",velYDataSetIndexes[frameIndex+index]-1,velYDataSetIndexes[frameIndex+index+1]))
     newdensities=[]
     newvelocityX=[]
     newvelocityY=[]

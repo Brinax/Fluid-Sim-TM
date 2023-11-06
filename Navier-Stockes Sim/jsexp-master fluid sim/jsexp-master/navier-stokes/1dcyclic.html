@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Reaction diffusion simulation</title>
+        <link rel="stylesheet" type="text/css" href="../css/experiments.css"/>
+        <link rel="stylesheet" type="text/css" href="../gradientui/gradientui.css"/>
+        <link type="text/css" href="../3rd/custom-theme/jquery-ui-1.8.16.custom.css" rel="stylesheet" />
+        <script type="text/javascript" src="../3rd/jquery-1.6.3.min.js"></script>
+        <script type="text/javascript" src="../3rd/jquery-ui-1.8.16.custom.min.js"></script>
+        <script type="text/javascript" src="../3rd/colorPicker.js"></script>
+        <script type="text/javascript" src="../3rd/three.min.js"></script>
+        <script type="text/javascript" src="../gradientui/gradientui.js"></script>
+        <!--script type="text/javascript" src="http://mrdoob.github.com/three.js/build/three.min.js"></script-->
+        <script type="x-shader/x-vertex" id="standardVertexShader">
+            varying vec2 vUv;
+
+            void main()
+            {
+                vUv = uv;
+                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+        </script>
+        <script type="x-shader/x-fragment" id="advectionFragmentShader">
+            varying vec2 vUv;
+            uniform float screenWidth;
+            uniform float screenHeight;
+            uniform sampler2D velocity_and_density;
+            uniform float delta;
+            uniform vec2 brush;
+
+            vec2 texel = vec2(1.0/screenWidth, 1.0/screenHeight);
+            float step_x = 1.0/screenWidth;
+            float step_y = 1.0/screenHeight;
+
+            void main()
+            {
+                if (vUv.y <= step_y || vUv.y >= 1.0-step_y) {
+                    gl_FragColor = texture2D(velocity_and_density,vUv);
+                }
+                else
+                {
+                    vec2 uv = texture2D(velocity_and_density, vUv).rg;
+                    gl_FragColor = texture2D(velocity_and_density, vUv-vec2(uv.x*step_x*delta,uv.y*step_y*delta));
+                }
+            }
+        </script>
+        <script type="x-shader/x-fragment" id="diffusionFragmentShader">
+            varying vec2 vUv;
+            uniform float screenWidth;
+            uniform float screenHeight;
+            uniform sampler2D velocity_and_density;
+            uniform float delta;
+            uniform vec2 brush;
+            uniform float densityDiffusion;
+            uniform float viscosity;
+
+            vec2 texel = vec2(1.0/screenWidth, 1.0/screenHeight);
+            float step_x = 1.0/screenWidth;
+            float step_y = 1.0/screenHeight;
+
+            void main()
+            {
+                if (vUv.y <= step_y || vUv.y >= 1.0-step_y) {
+                    gl_FragColor = texture2D(velocity_and_density,vUv);
+                }
+                else
+                {
+                    vec2 uv = texture2D(velocity_and_density, vUv).rg;
+                    vec2 uv0 = texture2D(velocity_and_density, vUv+vec2(-step_x, 0.0)).rg;
+                    vec2 uv1 = texture2D(velocity_and_density, vUv+vec2(step_x, 0.0)).rg;
+                    vec2 uv2 = texture2D(velocity_and_density, vUv+vec2(0.0, -step_y)).rg;
+                    vec2 uv3 = texture2D(velocity_and_density, vUv+vec2(0.0, step_y)).rg;
+    
+                    uv=(uv+viscosity*(uv0+uv1+uv2+uv3))/(4.0*viscosity+1.0);
+    
+                    float density = texture2D(velocity_and_density, vUv).b;
+                    float density0 = texture2D(velocity_and_density, vUv+vec2(-step_x, 0.0)).b;
+                    float density1 = texture2D(velocity_and_density, vUv+vec2(step_x, 0.0)).b;
+                    float density2 = texture2D(velocity_and_density, vUv+vec2(0.0, -step_y)).b;
+                    float density3 = texture2D(velocity_and_density, vUv+vec2(0.0, step_y)).b;
+    
+                    density=(density+densityDiffusion*(density0+density1+density2+density3))/(4.0*densityDiffusion+1.0);
+
+                    gl_FragColor = vec4(uv,density,0.0);
+                }
+            }
+        </script>
+        <script type="x-shader/x-fragment" id="divergenceFragmentShader">
+            varying vec2 vUv;
+            uniform float screenWidth;
+            uniform float screenHeight;
+            uniform sampler2D velocity_and_density;
+            uniform float delta;
+            uniform vec2 brush;
+            uniform float densityDiffusion;
+            uniform float viscosity;
+            uniform sampler2D divergence_and_pression;
+
+            vec2 texel = vec2(1.0/screenWidth, 1.0/screenHeight);
+            float step_x = 1.0/screenWidth;
+            float step_y = 1.0/screenHeight;
+
+            void main()
+            {
+                float uv0 = texture2D(velocity_and_density, vUv+vec2(-step_x, 0.0)).x;
+                float uv1 = texture2D(velocity_and_density, vUv+vec2(step_x, 0.0)).x;
+                float uv2 = texture2D(velocity_and_density, vUv+vec2(0.0, -step_y)).y;
+                float uv3 = texture2D(velocity_and_density, vUv+vec2(0.0, step_y)).y;
+
+                
+                float pression = texture2D(divergence_and_pression,vUv).y;
+
+                gl_FragColor = vec4((uv1-uv0+uv3-uv2)/2.0,pression,0.0,0.0);
+            }
+        </script>
+        <script type="x-shader/x-fragment" id="pressionFragmentShader">
+            varying vec2 vUv;
+            uniform float screenWidth;
+            uniform float screenHeight;
+            uniform sampler2D velocity_and_density;
+            uniform float delta;
+            uniform vec2 brush;
+            uniform float densityDiffusion;
+            uniform float viscosity;
+            uniform sampler2D divergence_and_pression;
+
+            vec2 texel = vec2(1.0/screenWidth, 1.0/screenHeight);
+            float step_x = 1.0/screenWidth;
+            float step_y = 1.0/screenHeight;
+
+            void main()
+            {
+                float div = texture2D(divergence_and_pression, vUv).x;
+                if(vUv.y <= step_y)
+                {
+                    float pres0 = texture2D(divergence_and_pression, vUv+vec2(-step_x, 0.0)).y;
+                    float pres1 = texture2D(divergence_and_pression, vUv+vec2(step_x, 0.0)).y;
+                    float pres3 = texture2D(divergence_and_pression, vUv+vec2(0.0, step_y)).y;
+
+                    float newpres = (pres0+pres1+pres3-div)/4.0;
+    
+                    gl_FragColor = vec4(div,newpres,0.0,0.0);
+                }
+                else if(vUv.y >= 1.0-step_y)
+                {
+                    float pres0 = texture2D(divergence_and_pression, vUv+vec2(-step_x, 0.0)).y;
+                    float pres1 = texture2D(divergence_and_pression, vUv+vec2(step_x, 0.0)).y;
+                    float pres2 = texture2D(divergence_and_pression, vUv+vec2(0.0, -step_y)).y;
+    
+                    float newpres = (pres0+pres1+pres2-div)/4.0;
+    
+                    gl_FragColor = vec4(div,newpres,0.0,0.0);
+                }
+                else
+                {
+                    float pres0 = texture2D(divergence_and_pression, vUv+vec2(-step_x, 0.0)).y;
+                    float pres1 = texture2D(divergence_and_pression, vUv+vec2(step_x, 0.0)).y;
+                    float pres2 = texture2D(divergence_and_pression, vUv+vec2(0.0, -step_y)).y;
+                    float pres3 = texture2D(divergence_and_pression, vUv+vec2(0.0, step_y)).y;
+    
+                    float newpres = (pres0+pres1+pres2+pres3-div)/4.0;
+    
+                    gl_FragColor = vec4(div,newpres,0.0,0.0);
+                }
+            }
+        </script>
+        <script type="x-shader/x-fragment" id="applyPressionFragmentShader">
+            varying vec2 vUv;
+            uniform float screenWidth;
+            uniform float screenHeight;
+            uniform sampler2D velocity_and_density;
+            uniform float delta;
+            uniform vec2 brush;
+            uniform float densityDiffusion;
+            uniform float viscosity;
+            uniform sampler2D divergence_and_pression;
+
+            vec2 texel = vec2(1.0/screenWidth, 1.0/screenHeight);
+            float step_x = 1.0/screenWidth;
+            float step_y = 1.0/screenHeight;
+
+            void main()
+            {
+                if (vUv.y <= step_y || vUv.y >= 1.0-step_y) {
+                    gl_FragColor = texture2D(velocity_and_density,vUv);
+                }else
+                {
+                    vec2 velocity = texture2D(velocity_and_density,vUv).xy;
+                    float density = texture2D(velocity_and_density,vUv).z;
+                    float pres0 = texture2D(divergence_and_pression, vUv+vec2(-step_x, 0.0)).y;
+                    float pres1 = texture2D(divergence_and_pression, vUv+vec2(step_x, 0.0)).y;
+                    float pres2 = texture2D(divergence_and_pression, vUv+vec2(0.0, -step_y)).y;
+                    float pres3 = texture2D(divergence_and_pression, vUv+vec2(0.0, step_y)).y;
+    
+    
+    
+                    gl_FragColor = vec4(velocity-vec2(pres1-pres0,pres3-pres2),density,0.0);
+                }
+            }
+        </script>
+        <script type="x-shader/x-fragment" id="screenFragmentShader">
+            varying vec2 vUv;
+            uniform float screenWidth;
+            uniform float screenHeight;
+            uniform sampler2D velocity_and_density;
+            uniform sampler2D divergence_and_pression;
+            uniform float delta;
+            uniform float feed;
+            uniform float kill;
+            uniform vec4 color1;
+            uniform vec4 color2;
+            uniform vec4 color3;
+            uniform vec4 color4;
+            uniform vec4 color5;
+            uniform vec4 color6;
+
+            vec2 texel = vec2(1.0/screenWidth, 1.0/screenHeight);
+            float step_x = 1.0/screenWidth;
+            float step_y = 1.0/screenHeight;
+
+            float tanh(float val)
+            {
+                float tmp = exp(val);
+                float tanH = (tmp - 1.0 / tmp) / (tmp + 1.0 / tmp);
+                return tanH;
+            }
+            void main()
+            {
+                float dens=texture2D(velocity_and_density, vUv).z;
+                dens=tanh(dens*2.0-1.0)/tanh(1.0);
+                dens=tanh(dens)/tanh(1.0);
+                dens=tanh(dens)/tanh(1.0);
+                dens=dens/2.0+0.5;
+                vec4 color;
+                if(dens == 0.0) {
+                    color = vec4(0.0, 0.0, 0.0, 1.0); // Noir
+                }
+                else if(dens < 0.25) {
+                    color = mix(vec4(0.0, 0.0, 0.0, 1.0), vec4(0.0, 0.0, 1.0, 1.0), dens*4.0); // Entre noir et bleu
+                }
+                else if(dens < 0.5) {
+                    color = mix(vec4(0.0, 0.0, 1.0, 1.0), vec4(0.0, 1.0, 0.0, 1.0),  (dens - 0.25)*4.0); // Entre noir et bleu
+                }
+                else if(dens < 0.75) {
+                    color = mix(vec4(0.0, 1.0, 0.0, 1.0), vec4(1.0, 0.0, 0.0, 1.0), (dens - 0.5)*4.0); // Entre bleu et vert
+                }
+                else if(dens < 1.0) {
+                    color = mix( vec4(1.0, 0.0, 0.0, 1.0), vec4(1.0, 1.0, 1.0, 1.0), (dens - 0.75) *4.0); // Entre vert et rouge
+                }
+                else {
+                    color = vec4(1.0, 1.0, 1.0, 1.0); 
+                }
+                
+                //color=vec4(vec3(dens),1.0);
+                gl_FragColor = color;
+
+                /*
+                if(mod(gl_FragCoord.x,75.0)>50.0)
+                {
+                    gl_FragColor = vec4(vec3(texture2D(velocity_and_density, vUv).z),1.0);
+                }
+                else if(mod(gl_FragCoord.x,75.0)>25.0)
+                {
+                    gl_FragColor = vec4(vec3(1.0+texture2D(velocity_and_density, vUv).y,1.0-abs(texture2D(velocity_and_density, vUv).y),1.0-texture2D(velocity_and_density, vUv).y),1.0);
+                }
+                else
+                {
+                    gl_FragColor = vec4(vec3(texture2D(velocity_and_density, vUv).x,0.0,-texture2D(velocity_and_density, vUv).x),1.0);
+                }*/
+/*
+                vec2 uv= texture2D(velocity_and_density, vUv).xy;
+                float uv1 = texture2D(velocity_and_density, vUv+vec2(step_x, 0.0)).y;
+                float uv3 = texture2D(velocity_and_density, vUv+vec2(0.0, step_y)).x;
+
+                float curl = uv1-uv.y-uv3+uv.x;
+                curl = tanh(curl*10.0);
+                gl_FragColor=vec4(vec3(curl,0.0,-curl),1.0);
+                gl_FragColor = vec4(vec3(texture2D(velocity_and_density, vUv).z),1.0);*/
+                
+
+                
+            }
+        </script>
+        <script type="text/javascript" src="navier-stockes 1D cyclic.js"></script>
+        <meta charset="UTF-8">
+        <style>
+            #gradient
+            {
+                height: 40px;
+                width: 85%;
+                margin-top: 5px;
+                margin-left:auto;
+                margin-right:auto;
+            }
+        </style>
+        <script>
+            $(function()
+            {
+                $("#gradient").gradient({values:
+                                        [[0, '#000000'],
+                                         [0.2, '#00FF00'],
+                                         [0.21, '#FFFF00'],
+                                         [0.4, '#FF0000'],
+                                         [0.6, '#FFFFFF'],
+                                         [0.8, '#FFFFFF']]});
+
+                // KLUDGE!
+                colorPicker.offsetX = -512;
+                colorPicker.offsetY = -256;
+
+                document.getElementById("gradient").onselectstart = function () {return false;};
+
+                init();
+            });
+        </script>
+    </head>
+    <body>
+        <header>
+            <h1>Reaction diffusion system (Gray-Scott model)</h1>
+        </header>
+        <div id="simulation">
+        <canvas id="myCanvas" class="viewer" style="width:1024px;height:512px"></canvas>
+        <aside class="panel">
+            <section id="instructions">
+                <header><h4>Instructions</h4></header>
+                <ol>
+                    <li>Paint some strokes on the canvas.</li>
+                    <li>Choose the evolution settings with the controls below.</li>
+                    <li>Watch the evolution.</li>
+                </ol>
+            </section>
+            <section id="controls">
+                <!--header><h4>Controls</h4></header-->
+                <form name="ex">
+                    Presets:
+                    <select name="scene" style="width:100%"
+                        onchange="loadPreset(document.ex.scene.selectedIndex)">
+                        <option value="0" selected="selected">Default</option>
+                        <option value="1">Solitons</option>
+                        <option value="2">Pulsating solitons</option>
+                        <option value="3">Worms</option>
+                        <option value="4">Mazes</option>
+                        <option value="5">Holes</option>
+                        <option value="6">Chaos</option>
+                        <option value="7">Chaos and holes</option>
+                        <option value="8">Moving spots</option>
+                        <option value="9">Spots and loops</option>
+                        <option value="10">Waves</option>
+                        <option value="11">The U-Skate world</option>
+                    </select>
+                </form>
+                <p style="text-align:center">
+                    <button id="btn_clear" onclick="clean()">Clear</button>
+                    <button id="btn_snapshot" onclick="snapshot()">Take snapshot</button>
+                    <button id="btn_fullscreen" onclick="fullscreen()">Fullscreen mode</button>
+                <p/>
+                <h4 class="unsafe">Advanced settings</h4>
+                Feed rate:
+                <span class="remark" id="replenishment"></span><br/>
+                <div id="sld_replenishment" class="slider"></div>
+
+                Death rate:
+                <span class ="remark" id="diminishment"></span><br/>
+                <div id="sld_diminishment" class="slider"></div>
+                Colors:
+                <div id="gradient" style=""></div>
+                <div style="font-size:x-small">Share (paste and press enter):</div>
+                <div style="text-align:center"><input id="share" style="width:85%"/></div>
+            </section>
+        </aside>
+        </div>
+        <footer>
+                <div id="copyright">
+                        &copy;2012
+                        <a href="https://twitter.com/pmneila">@pmneila</a>
+                        <a href="https://github.com/pmneila/jsexp">Github</a>
+                        <a id="notworking" href="#">Not working?</a>
+                </div>
+        </footer>
+
+        <div id="requirement_dialog" title="Requirements">
+            <p>This simulation requires the GL extensions framebuffer_object and texture_float.
+            If you cannot see the simulation your system probably lacks at least one of these extensions.</p>
+
+            <p>In Google Chrome, you can see the available GL extensions going to chrome://gpu.</p>
+        </div>
+    </body>
+</html>

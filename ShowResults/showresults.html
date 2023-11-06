@@ -29,11 +29,22 @@
         fr.onload=function(){
             results=fr.result.split("W");
             imgWidth=parseInt(results[0],10);
-            imgHeight=imgWidth;
+            results=results[1]
+            results=results.split("H");
+            if(results.length>1)
+            {
+
+                imgHeight=parseInt(results[0],10);
+                results=results[1]
+            }else
+            {
+                imgHeight=imgWidth
+                results=results[0]
+            }
             canvas.width=imgWidth*scale;
             canvas.height=imgHeight*scale;
 
-            showFramesFromeRawData(results[1]);
+            showFramesFromeRawData(results);
         }
             
         fr.readAsText(document.getElementById('inputfile').files[0]);

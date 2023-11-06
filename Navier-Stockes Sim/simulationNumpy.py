@@ -654,16 +654,16 @@ else:
     thermal_diffusivity*=deltaTime
     totstart=time.time()
     for index in range(numberOfSteps):
-        #DensityDiffusion()
-        #TemperatureDiffusion()
-        #VelocityDiffusion()
+        DensityDiffusion()
+        TemperatureDiffusion()
+        VelocityDiffusion()
         #clearDivergence()
-        #clearAccuratlyDivergence(0.01)
-        #NumpyAdvection(0.1)
-        clearAccuratlyDivergence(0.0001)
-        #clearAccuratlyDivergence(0.01)
-        #apply_HeatGravity_Influence(deltaTime)
-        #clearAccuratlyDivergence(0.01)
+        clearAccuratlyDivergence(0.01)
+        NumpyAdvection(0.1)
+        #clearAccuratlyDivergence(0.0001)
+        clearAccuratlyDivergence(0.01)
+        apply_HeatGravity_Influence(deltaTime)
+        clearAccuratlyDivergence(0.01)
         if(index%1==0):
             if(isCylinder):
                 numpy.savetxt(densityF,densities[:,1:-1].T,delimiter="\\",newline="\\",fmt="%.2f")
